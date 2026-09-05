@@ -12,7 +12,7 @@ TECNOLOGÍAS
 
 CREDENCIALES
 Usuario: admin
-Contraseña: admin123
+Contraseña: admin1234
 
 CÓMO ABRIR EN APACHE NETBEANS
 1. Descomprime el ZIP.
