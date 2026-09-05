@@ -1,0 +1,8 @@
+package pe.edu.utp.sigpi.repository;
+import pe.edu.utp.sigpi.model.SalesOrder;
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
+public interface SalesOrderRepository extends JpaRepository<SalesOrder, Long> {
+    long countByStatus(String status);
+    List<SalesOrder> findAllByOrderByOrderDateDescIdDesc();
+}
