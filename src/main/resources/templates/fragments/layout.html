@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<aside class="sidebar" th:fragment="sidebar(active)">
+  <div class="brand">
+    <div class="brand-mark">S</div>
+    <div><strong>SIGPI</strong><small>GESTIÓN DE PEDIDOS</small></div>
+  </div>
+  <nav class="nav">
+    <a th:href="@{/dashboard}" th:classappend="${active=='dashboard'}?'active'"><span class="ico">⊞</span> Dashboard</a>
+    <a th:href="@{/products}" th:classappend="${active=='products'}?'active'"><span class="ico">📦</span> Productos</a>
+    <a th:href="@{/categories}" th:classappend="${active=='categories'}?'active'"><span class="ico">🏷</span> Categorías</a>
+    <a th:href="@{/inventory}" th:classappend="${active=='inventory'}?'active'"><span class="ico">▣</span> Inventario</a>
+    <a th:href="@{/orders}" th:classappend="${active=='orders'}?'active'"><span class="ico">🛒</span> Pedidos</a>
+    <a th:href="@{/clients}" th:classappend="${active=='clients'}?'active'"><span class="ico">👥</span> Clientes</a>
+    <a th:href="@{/providers}" th:classappend="${active=='providers'}?'active'"><span class="ico">🏭</span> Proveedores</a>
+    <a th:href="@{/movements}" th:classappend="${active=='movements'}?'active'"><span class="ico">↔</span> Movimientos</a>
+    <a th:href="@{/reports}" th:classappend="${active=='reports'}?'active'"><span class="ico">📊</span> Reportes</a>
+    <a th:href="@{/users}" th:classappend="${active=='users'}?'active'"><span class="ico">♟</span> Usuarios</a>
+    <a th:href="@{/settings}" th:classappend="${active=='settings'}?'active'"><span class="ico">⚙</span> Configuración</a>
+  </nav>
+  <div class="sidebar-bottom">
+    <a th:href="@{/profile}"><span>♟</span> Mi Perfil</a>
+    <a class="logout" th:href="@{/logout}"><span>⊗</span> Cerrar sesión</a>
+  </div>
+</aside>
+
+<header class="topbar" th:fragment="topbar(title)">
+  <div style="display:flex;align-items:center;gap:10px">
+    <button class="icon-btn mobile-menu" data-menu>☰</button>
+    <div class="page-title"><h1 th:text="${title}">Dashboard</h1><small>Alicorp S.A.C. — Arequipa, 27 de agosto de 2026</small></div>
+  </div>
+  <div class="userbar">
+    <button class="icon-btn">🔔<span class="notif-dot"></span></button>
+    <div class="user-pill">
+      <div class="avatar" th:text="${session.user != null ? session.user.initials : 'U'}">JQ</div>
+      <div class="user-text"><strong th:text="${session.user != null ? session.user.fullName : 'Usuario'}">Juan Quispe</strong><small th:text="${session.user != null ? session.user.role : 'Administrador'}">Administrador</small></div><span class="muted">▼</span>
+    </div>
+  </div>
+</header>
+
+<div th:fragment="flash">
+  <div class="alert success" th:if="${success}" th:text="${success}"></div>
+  <div class="alert error" th:if="${error}" th:text="${error}"></div>
+</div>
+
+<footer class="footer-mini" th:fragment="footer">SIGPI v1.0 · Alicorp S.A.C. — Arequipa, Perú © 2026</footer>
+<script th:fragment="scripts" th:src="@{/js/app.js}"></script>
+</body>
+</html>
