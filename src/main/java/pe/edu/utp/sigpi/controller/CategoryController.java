@@ -20,10 +20,12 @@ public class CategoryController {
         this.categoryRepository = categoryRepository; this.productRepository = productRepository;
     }
     @GetMapping
-    public String list(Model model) {
-        var categories = categoryRepository.findAll();
+    public String list(@RequestParam(defaultValue="") String q, Model model) {
+        var categories = categoryRepository.findAll().stream().filter(c->(c.getCode()+c.getName()).toLowerCase().contains(q.toLowerCase())).toList();
+        model.addAttribute("q",q);
+        var allProducts=productRepository.findAll();
         Map<Long, Long> counts = new HashMap<>();
-        for (Category c : categories) counts.put(c.getId(), productRepository.findAll().stream().filter(p -> p.getCategory().getId().equals(c.getId())).count());
+        for (Category c : categories) counts.put(c.getId(), allProducts.stream().filter(p -> p.getCategory().getId().equals(c.getId())).count());
         model.addAttribute("categories", categories); model.addAttribute("counts", counts); return "categories";
     }
     @GetMapping("/new") public String newForm(Model m) { m.addAttribute("category", new Category()); return "category-form"; }

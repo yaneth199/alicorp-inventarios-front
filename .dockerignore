@@ -1,0 +1,14 @@
+.git
+.github
+.env
+.env.*
+!.env.example
+target
+backups
+test-results
+*.zip
+*.backup
+*.log
+src/main/resources/application-local.properties
+
+images/

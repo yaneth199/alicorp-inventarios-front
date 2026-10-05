@@ -1,0 +1,27 @@
+name: sigpi-alicorp-tests
+services:
+  test-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: sigpi_test
+      POSTGRES_USER: sigpi_test
+      POSTGRES_PASSWORD: isolated_test_only
+    # Disposable database, completely separate from application data.
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sigpi_test -d sigpi_test"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+  tests:
+    build:
+      context: .
+      target: test-runner
+    environment:
+      DB_URL: jdbc:postgresql://test-db:5432/sigpi_test
+      DB_USER: sigpi_test
+      DB_PASSWORD: isolated_test_only
+    depends_on:
+      test-db:
+        condition: service_healthy

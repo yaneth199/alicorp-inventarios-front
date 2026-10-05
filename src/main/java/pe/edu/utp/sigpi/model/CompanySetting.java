@@ -16,6 +16,18 @@ public class CompanySetting {
     private String systemName;
     private String version;
 
+    private int defaultMinStock=10;
+    private boolean lowStockAlerts=true;
+    private int sessionMinutes=30;
+    private String defaultRole="Ventas";
+    public int getDefaultMinStock(){return defaultMinStock;}
+    public void setDefaultMinStock(int value){defaultMinStock=value;}
+    public boolean isLowStockAlerts(){return lowStockAlerts;}
+    public void setLowStockAlerts(boolean value){lowStockAlerts=value;}
+    public int getSessionMinutes(){return sessionMinutes;}
+    public void setSessionMinutes(int value){sessionMinutes=value;}
+    public String getDefaultRole(){return defaultRole;}
+    public void setDefaultRole(String value){defaultRole=value;}
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getBusinessName() { return businessName; }

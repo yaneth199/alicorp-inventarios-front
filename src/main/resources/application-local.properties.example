@@ -1,0 +1,8 @@
+# Copiar como application-local.properties y completar antes de Run.
+spring.datasource.url=jdbc:postgresql://localhost:5432/sigpi_alicorp
+spring.datasource.username=sigpi
+spring.datasource.password=CAMBIAR_PASSWORD_LOCAL
+# Solo se utiliza si no existe ningún usuario. Entre 8 y 128 caracteres.
+sigpi.admin-password=CAMBIAR_CLAVE_ADMIN
+# true carga catálogo/clientes ficticios en una base sin categorías.
+sigpi.demo=true

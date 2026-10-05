@@ -17,6 +17,6 @@ public class ProfileController {
     @PostMapping("/profile")
     public String save(@RequestParam String fullName,@RequestParam String email,@RequestParam(required=false) String password,HttpSession session,RedirectAttributes ra){
         AppUser current=(AppUser)session.getAttribute("user"); AppUser u=repo.findById(current.getId()).orElseThrow();
-        u.setFullName(fullName);u.setEmail(email);if(password!=null&&!password.isBlank())u.setPassword(password);repo.save(u);session.setAttribute("user",u);ra.addFlashAttribute("success","Perfil actualizado");return "redirect:/profile";
+        u.setFullName(fullName);u.setEmail(email);if(password!=null&&!password.isBlank())u.setPassword(pe.edu.utp.sigpi.service.Passwords.hash(password));repo.save(u);session.setAttribute("user",u);ra.addFlashAttribute("success","Perfil actualizado");return "redirect:/profile";
     }
 }

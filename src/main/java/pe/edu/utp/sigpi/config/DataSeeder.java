@@ -1,115 +1,41 @@
 package pe.edu.utp.sigpi.config;
-
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.stereotype.Component;
-import pe.edu.utp.sigpi.model.*;
-import pe.edu.utp.sigpi.repository.*;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-
+import org.springframework.boot.CommandLineRunner;import org.springframework.stereotype.Component;import org.springframework.transaction.annotation.Transactional;import org.springframework.beans.factory.annotation.Value;import org.springframework.jdbc.core.JdbcTemplate;
+import pe.edu.utp.sigpi.model.*;import pe.edu.utp.sigpi.repository.*;import pe.edu.utp.sigpi.service.*;
+import java.util.*;import java.time.*;import java.math.BigDecimal;
 @Component
 public class DataSeeder implements CommandLineRunner {
-    private final CategoryRepository categoryRepository;
-    private final ProductRepository productRepository;
-    private final ClientRepository clientRepository;
-    private final ProviderRepository providerRepository;
-    private final AppUserRepository userRepository;
-    private final MovementRepository movementRepository;
-    private final SalesOrderRepository orderRepository;
-    private final CompanySettingRepository settingRepository;
-
-    public DataSeeder(CategoryRepository categoryRepository, ProductRepository productRepository,
-                      ClientRepository clientRepository, ProviderRepository providerRepository,
-                      AppUserRepository userRepository, MovementRepository movementRepository,
-                      SalesOrderRepository orderRepository, CompanySettingRepository settingRepository) {
-        this.categoryRepository = categoryRepository;
-        this.productRepository = productRepository;
-        this.clientRepository = clientRepository;
-        this.providerRepository = providerRepository;
-        this.userRepository = userRepository;
-        this.movementRepository = movementRepository;
-        this.orderRepository = orderRepository;
-        this.settingRepository = settingRepository;
-    }
-
-    @Override
-    public void run(String... args) {
-        if (categoryRepository.count() > 0) return;
-
-        Category aceites = categoryRepository.save(new Category("CAT-001", "Aceites", "Aceites comestibles y para cocinar", true));
-        Category pastas = categoryRepository.save(new Category("CAT-002", "Pastas", "Fideos, tallarines y similares", true));
-        Category limpieza = categoryRepository.save(new Category("CAT-003", "Limpieza", "Detergentes, jabones y limpiadores", true));
-        Category grasas = categoryRepository.save(new Category("CAT-004", "Grasas", "Manteca, margarina y similares", true));
-        Category granos = categoryRepository.save(new Category("CAT-005", "Granos", "Arroz, menestras y cereales", true));
-        Category cereales = categoryRepository.save(new Category("CAT-006", "Cereales", "Avenas, granolas y cereales", true));
-        Category lacteos = categoryRepository.save(new Category("CAT-007", "Lácteos", "Leche, yogur y derivados", true));
-        categoryRepository.save(new Category("CAT-008", "Snacks", "Galletas, papas fritas y similares", false));
-
-        Product p1 = productRepository.save(new Product("PRD-001", "Aceite Primor 1L", aceites, "Unidad", bd("5.20"), bd("7.50"), 342, 50));
-        Product p2 = productRepository.save(new Product("PRD-002", "Fideos Don Vittorio 500g", pastas, "Paquete", bd("2.10"), bd("3.20"), 18, 30));
-        Product p3 = productRepository.save(new Product("PRD-003", "Detergente Ace 360g", limpieza, "Bolsa", bd("3.80"), bd("5.90"), 0, 20));
-        Product p4 = productRepository.save(new Product("PRD-004", "Manteca Famosa 500g", grasas, "Bloque", bd("4.50"), bd("6.80"), 127, 40));
-        Product p5 = productRepository.save(new Product("PRD-005", "Arroz Costeño 5kg", granos, "Bolsa", bd("12.00"), bd("17.50"), 89, 60));
-        Product p6 = productRepository.save(new Product("PRD-006", "Avena 3 Ositos 180g", cereales, "Sobre", bd("1.80"), bd("2.90"), 12, 25));
-        Product p7 = productRepository.save(new Product("PRD-007", "Leche Gloria 400g", lacteos, "Tarro", bd("3.60"), bd("5.20"), 210, 80));
-        Product p8 = productRepository.save(new Product("PRD-008", "Jabón Bolívar 230g", limpieza, "Barra", bd("1.50"), bd("2.30"), 0, 30));
-
-        Client c1 = clientRepository.save(new Client("CLI-001", "20452678901", "Supermercados La Colina SAC", "Av. Ejército 801, Cayma", "054-271234", "compras@lacolinal.pe", true));
-        Client c2 = clientRepository.save(new Client("CLI-002", "10234567890", "Bodega El Buen Precio", "Jr. Mercaderes 412, Cercado", "054-222345", "buenprecio@gmail.com", true));
-        Client c3 = clientRepository.save(new Client("CLI-003", "20601234567", "Minimarket Los Andes", "Calle Palacio Viejo 203, Cercado", "054-233456", "losandes@hotmail.com", true));
-        Client c4 = clientRepository.save(new Client("CLI-004", "20504987654", "Distribuidora Del Sur EIRL", "Av. Aviación 1520, Paucarpata", "054-244567", "delsur@empresa.pe", true));
-        Client c5 = clientRepository.save(new Client("CLI-005", "10345678901", "Tienda San Martín", "Calle San Martín 780, Miraflores", "054-255678", "", false));
-
-        providerRepository.save(new Provider("PRV-001", "20100190346", "Proveedora Andina SAC", "Ing. Roberto Salas", "054-288990", "ventas@andina.pe"));
-        providerRepository.save(new Provider("PRV-002", "20501234567", "Distribuidora Lima Norte SRL", "Sra. Carmen Vega", "01-4561234", "carmen@limanorte.com"));
-        providerRepository.save(new Provider("PRV-003", "20604321987", "Suministros Arequipa SRL", "Sr. Hugo Medina", "054-299001", "hmedina@sumarequipa.pe"));
-
-        AppUser u1 = new AppUser("Juan Carlos Quispe Mamani", "admin", "admin123", "j.quispe@sigpi.pe", "Administrador", true);
-        u1.setLastAccess(LocalDateTime.of(2026, 8, 27, 8, 42)); userRepository.save(u1);
-        AppUser u2 = new AppUser("María Elena Condori Vargas", "mcondori", "ventas123", "m.condori@sigpi.pe", "Ventas", true);
-        u2.setLastAccess(LocalDateTime.of(2026, 8, 27, 9, 15)); userRepository.save(u2);
-        AppUser u3 = new AppUser("Carlos Alberto Flores Ramos", "cflores", "almacen123", "c.flores@sigpi.pe", "Almacén", true);
-        u3.setLastAccess(LocalDateTime.of(2026, 8, 26, 17, 30)); userRepository.save(u3);
-        AppUser u4 = new AppUser("Ana Lucía Paredes Torres", "aparedes", "super123", "a.paredes@sigpi.pe", "Supervisor", true);
-        u4.setLastAccess(LocalDateTime.of(2026, 8, 25, 11, 0)); userRepository.save(u4);
-        AppUser u5 = new AppUser("Luis Miguel Huanca Castro", "lhuanca", "almacen123", "l.huanca@sigpi.pe", "Almacén", false);
-        u5.setLastAccess(LocalDateTime.of(2026, 8, 10, 9, 0)); userRepository.save(u5);
-
-        seedOrder("PED-2026-001", c1, LocalDate.of(2026,8,27), "Entregado", "Juan Quispe", p1, 8);
-        seedOrder("PED-2026-002", c2, LocalDate.of(2026,8,27), "En proceso", "María Condori", p2, 4);
-        seedOrder("PED-2026-003", c3, LocalDate.of(2026,8,26), "Pendiente", "Carlos Flores", p5, 12);
-        seedOrder("PED-2026-004", c4, LocalDate.of(2026,8,26), "Preparado", "Juan Quispe", p4, 6);
-        seedOrder("PED-2026-005", c2, LocalDate.of(2026,8,25), "Entregado", "María Condori", p7, 3);
-        seedOrder("PED-2026-006", c5, LocalDate.of(2026,8,25), "Cancelado", "Carlos Flores", p6, 7);
-        seedOrder("PED-2026-007", c1, LocalDate.of(2026,8,24), "Entregado", "Juan Quispe", p1, 15);
-        seedOrder("PED-2026-008", c3, LocalDate.of(2026,8,24), "En proceso", "María Condori", p2, 5);
-
-        movementRepository.save(new InventoryMovement(LocalDate.of(2026,8,27), p1, "ENTRADA", 200, 342, "GR-0892", "Juan Quispe"));
-        movementRepository.save(new InventoryMovement(LocalDate.of(2026,8,27), p2, "SALIDA", 30, 18, "PED-2026-002", "María Condori"));
-        movementRepository.save(new InventoryMovement(LocalDate.of(2026,8,26), p4, "ENTRADA", 100, 127, "GR-0891", "Juan Quispe"));
-        movementRepository.save(new InventoryMovement(LocalDate.of(2026,8,26), p3, "SALIDA", 20, 0, "PED-2026-003", "Carlos Flores"));
-        movementRepository.save(new InventoryMovement(LocalDate.of(2026,8,25), p5, "AJUSTE", 5, 89, "AJU-0014", "Juan Quispe"));
-        movementRepository.save(new InventoryMovement(LocalDate.of(2026,8,25), p7, "ENTRADA", 150, 210, "GR-0890", "María Condori"));
-
-        CompanySetting s = new CompanySetting();
-        s.setId(1L); s.setBusinessName("Alicorp S.A.C."); s.setRuc("20100116392");
-        s.setAddress("Av. Argentina 4793, Callao"); s.setBranch("Arequipa — Parque Industrial");
-        s.setPhone("054-200000"); s.setEmail("arequipa@alicorp.pe"); s.setSystemName("SIGPI"); s.setVersion("1.0.0 — 2026");
-        settingRepository.save(s);
-    }
-
-    private void seedOrder(String code, Client client, LocalDate date, String status, String responsible, Product product, int qty) {
-        SalesOrder o = new SalesOrder();
-        o.setCode(code); o.setClient(client); o.setOrderDate(date); o.setStatus(status); o.setResponsible(responsible);
-        OrderItem item = new OrderItem(); item.setOrder(o); item.setProduct(product); item.setQuantity(qty);
-        item.setPrice(product.getSalePrice()); item.setSubtotal(product.getSalePrice().multiply(BigDecimal.valueOf(qty)));
-        o.getItems().add(item);
-        // Valor visual similar al prototipo, manteniendo cálculo consistente.
-        o.setTotal(item.getSubtotal());
-        orderRepository.save(o);
-    }
-
-    private BigDecimal bd(String value) { return new BigDecimal(value); }
+ private final CategoryRepository categories;private final ProductRepository products;private final ClientRepository clients;private final ProviderRepository providers;private final AppUserRepository users;private final MovementRepository movements;private final CompanySettingRepository settings;private final OrderService orders;private final JdbcTemplate jdbc;
+ @Value("${sigpi.demo:false}")private boolean demo;
+ @Value("${sigpi.admin-password:}")private String adminPassword;
+ public DataSeeder(CategoryRepository c,ProductRepository p,ClientRepository l,ProviderRepository v,AppUserRepository u,MovementRepository m,CompanySettingRepository s,OrderService o,JdbcTemplate jdbc){categories=c;products=p;clients=l;providers=v;users=u;movements=m;settings=s;orders=o;this.jdbc=jdbc;}
+ @Override @Transactional public void run(String...args){
+  if(users.count()==0)users.save(new AppUser("Administrador SIGPI","admin",Passwords.hash(adminPassword),"admin@example.test","Administrador",true));
+  if(settings.count()==0){var s=new CompanySetting();s.setBusinessName("Alicorp S.A.C.");s.setRuc("20000000000");s.setBranch("Arequipa — Parque Industrial");s.setAddress("Dirección de demostración");s.setEmail("contacto@example.test");s.setPhone("054-200000");s.setSystemName("SIGPI");s.setVersion("3.0.0");settings.save(s);}
+  if(!demo)return;
+  jdbc.execute("SELECT pg_advisory_xact_lock(742319)");
+  if(jdbc.queryForObject("SELECT count(*) FROM demo_batches WHERE code='APF1-2026-V3'",Long.class)>0)return;
+  String[] catNames={"Aceites","Pastas","Limpieza","Grasas","Granos","Cereales","Salsas","Repostería"};List<Category> cats=new ArrayList<>();
+  for(int i=0;i<catNames.length;i++){String code="DEM-CAT-"+(i+1);var c=categories.findAll().stream().filter(x->code.equals(x.getCode())).findFirst().orElseGet(()->new Category(code,"","Datos de demostración",true));c.setName(catNames[i]);cats.add(categories.save(c));}
+  String[] names={"Aceite Primor 1L","Aceite Cocinero 1L","Aceite Cil 1L","Fideos Don Vittorio 500g","Fideos Nicolini 500g","Fideos Lavaggi 500g","Detergente Opal 800g","Detergente Bolívar 800g","Jabón Bolívar 230g","Manteca Famosa 500g","Margarina Manty 200g","Margarina Sello de Oro 500g","Arroz Costeño 5kg","Arroz Paisana 5kg","Lentejas de demostración 500g","Avena 3 Ositos 180g","Avena Ángel 150g","Cereal Ángel 250g","Mayonesa Alacena 475g","Salsa de ají Alacena 85g","Salsa de tomate 200g","Harina Blanca Flor 1kg","Premezcla Blanca Flor 500g","Azúcar de demostración 1kg"};
+  List<Product> ps=new ArrayList<>();LocalDate start=LocalDate.now().withDayOfMonth(1).minusMonths(7);
+  for(int i=0;i<names.length;i++){var price=BigDecimal.valueOf(250+(i%9)*175,2);int stock=i==8?0:1000;var p=new Product(String.format("DEM-PRD-%03d",i+1),names[i],cats.get(i/3),"Unidad",price.multiply(new BigDecimal("0.7")).setScale(2,java.math.RoundingMode.HALF_UP),price,stock,50);p.setDescription("Producto de demostración académica; precios referenciales");p=products.save(p);ps.add(p);if(stock>0)movements.save(new InventoryMovement(start.minusDays(1),p,"ENTRADA",stock,stock,"APERTURA-DEMO", "Administrador SIGPI"));}
+  List<Client> cs=new ArrayList<>();String[] businesses={"Bodega El Buen Precio","Comercial La Colina","Minimarket Los Andes","Distribuidora del Sur","Tienda San Martín","Comercial Santa Rosa","Mercado La Unión","Bodega El Sol","Minimarket Cayma","Comercial Misti","Abarrotes San José","Tienda La Esperanza","Distribuidora Arequipeña","Mercadito Yanahuara","Comercial Miraflores","Tienda Las Flores","Minimarket El Puente","Comercial La Familia","Bodega San Pedro","Distribuciones El Portal"};
+  for(int i=0;i<businesses.length;i++)cs.add(clients.save(new Client(String.format("DEM-CLI-%03d",i+1),String.format("9000000%04d",i+1),businesses[i],"Dirección de prueba "+(i+1)+", Arequipa","900000"+String.format("%03d",i+1),"cliente"+(i+1)+"@example.test",true)));
+  List<Provider> vs=new ArrayList<>();for(int i=0;i<8;i++)vs.add(providers.save(new Provider(String.format("DEM-PRV-%03d",i+1),String.format("9100000%04d",i+1),"Proveedor de demostración "+(i+1),"Contacto "+(i+1),"910000"+String.format("%03d",i+1),"proveedor"+(i+1)+"@example.test")));
+  // Existing accounts are never changed. New demo role users initially share the configured admin bootstrap key.
+  if(adminPassword!=null&&adminPassword.length()>=8){String[] roles={"Ventas","Almacén","Supervisor"};String[] logins={"ventas.demo","almacen.demo","supervisor.demo"};for(int i=0;i<roles.length;i++)if(users.findByUsernameIgnoreCase(logins[i]).isEmpty())users.save(new AppUser("Usuario demo "+roles[i],logins[i],Passwords.hash(adminPassword),logins[i]+"@example.test",roles[i],true));}
+  for(int i=0;i<64;i++){
+   int month=i/8,index=i%8;LocalDate date=start.plusMonths(month).withDayOfMonth(1+index*3);if(date.isAfter(LocalDate.now()))date=LocalDate.now();
+   int first=i%24;if(first==8)first=9;int second=(i+7)%24;if(second==8)second=10;
+   var order=orders.createAt(cs.get(i%cs.size()).getId(),List.of(ps.get(first).getId(),ps.get(second).getId()),List.of(3+i%8,2+i%5),"Ventas Demo",date);
+   String desired=List.of("Entregado","Entregado","Enviado","Preparado","En proceso","Pendiente","Cancelado","Entregado").get(index);
+   int hour=10;
+   if(desired.equals("Cancelado"))orders.updateStatusAt(order.getId(),"Cancelado","Administrador SIGPI",date.atTime(hour,0));
+   else for(String status:List.of("En proceso","Preparado","Enviado","Entregado")){if(desired.equals("Pendiente"))break;orders.updateStatusAt(order.getId(),status,"Operador Demo",date.atTime(hour++,0));if(status.equals(desired))break;}
+  }
+  // Receipts and genuine low-stock examples, each reflected in the movement ledger.
+  for(int i=0;i<8;i++){var p=ps.get(i);p.setStock(p.getStock()+100);var m=new InventoryMovement(LocalDate.now(),p,"ENTRADA",100,p.getStock(),"GR-DEMO-"+(i+1),"Almacén Demo");m.setProvider(vs.get(i));movements.save(m);}
+  for(int id:List.of(1,5,11,17)){var p=ps.get(id);int target=12+id;if(p.getStock()>target){int qty=p.getStock()-target;p.setStock(target);movements.save(new InventoryMovement(LocalDate.now(),p,"SALIDA",qty,target,"SAL-DEMO-"+id,"Almacén Demo"));}}
+  jdbc.update("INSERT INTO demo_batches(code) VALUES ('APF1-2026-V3')");
+ }
 }

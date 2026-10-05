@@ -4,3 +4,16 @@
 /.vscode/
 *.log
 .DS_Store
+
+src/main/resources/application-local.properties
+.env
+*.backup
+
+.env.*
+!.env.example
+backups/
+test-results/
+*.log
+*.zip
+
+images/

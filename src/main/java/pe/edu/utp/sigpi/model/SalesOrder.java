@@ -23,6 +23,10 @@ public class SalesOrder {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
 
+    @OneToMany(mappedBy="order",cascade=CascadeType.ALL,orphanRemoval=true)
+    @OrderBy("changedAt ASC, id ASC")
+    private List<OrderStatusEvent> history=new ArrayList<>();
+    public List<OrderStatusEvent> getHistory(){return history;}
     public SalesOrder() {}
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

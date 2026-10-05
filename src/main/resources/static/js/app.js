@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(eye)eye.addEventListener('click',()=>{const input=document.getElementById('password');input.type=input.type==='password'?'text':'password';eye.textContent=input.type==='password'?'👁':'🙈';});
 });
 
-function forgotPassword(){alert('Para este prototipo, comunícate con el administrador del sistema para restablecer la contraseña.');}
+function forgotPassword(){alert('Comunícate con el administrador del sistema para restablecer la contraseña.');}
 function printReport(){window.print();}
 
 let orderLineIndex=0;
@@ -32,7 +32,9 @@ function recalcOrder(){
     if(qty>stock && stock>=0)line.querySelector('input[type=number]').setCustomValidity('La cantidad supera el stock disponible'); else line.querySelector('input[type=number]').setCustomValidity('');
     subtotal+=price*qty;
   });
-  const igv=subtotal*0.18,total=subtotal;
+  const total=subtotal;
   const sub=document.getElementById('orderSubtotal'),tax=document.getElementById('orderIgv'),tot=document.getElementById('orderTotal');
   if(sub)sub.textContent='S/ '+(subtotal/1.18).toFixed(2); if(tax)tax.textContent='S/ '+(subtotal-subtotal/1.18).toFixed(2); if(tot)tot.textContent='S/ '+total.toFixed(2);
 }
+
+document.addEventListener('DOMContentLoaded',()=>{const box=document.getElementById('remember-user');const input=document.querySelector('input[name="username"]');if(box&&input){try{const saved=localStorage.getItem('sigpi.username');if(saved&&!input.value){input.value=saved;box.checked=true;}}catch(e){}input.form.addEventListener('submit',()=>{try{if(box.checked)localStorage.setItem('sigpi.username',input.value);else localStorage.removeItem('sigpi.username');}catch(e){}});}});

@@ -1,6 +1,5 @@
 @echo off
-echo Cerrando/limpiando base de datos local de SIGPI...
-if exist sigpi_db.mv.db del /f /q sigpi_db.mv.db
-if exist sigpi_db.trace.db del /f /q sigpi_db.trace.db
-echo Base de datos reiniciada. Ahora abre NetBeans y ejecuta el proyecto otra vez.
+echo Esta version utiliza PostgreSQL. Los datos no se eliminan con este archivo.
+echo Para una practica nueva cree otra base y configure DB_URL.
+echo Consulte README.txt para respaldar y restaurar.
 pause

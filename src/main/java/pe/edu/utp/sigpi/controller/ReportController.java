@@ -1,28 +1,18 @@
 package pe.edu.utp.sigpi.controller;
-
-import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
-import pe.edu.utp.sigpi.repository.ProductRepository;
-import pe.edu.utp.sigpi.repository.SalesOrderRepository;
-
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.List;
-
-@Controller
-@RequestMapping("/reports")
+import org.springframework.stereotype.Controller;import org.springframework.ui.Model;import org.springframework.web.bind.annotation.*;import org.springframework.format.annotation.DateTimeFormat;import org.springframework.http.ResponseEntity;
+import pe.edu.utp.sigpi.repository.*;import pe.edu.utp.sigpi.service.*;import java.time.*;import java.util.*;import java.math.BigDecimal;
+@Controller @RequestMapping("/reports")
 public class ReportController {
-    private final SalesOrderRepository orderRepository; private final ProductRepository productRepository;
-    public ReportController(SalesOrderRepository orderRepository, ProductRepository productRepository){this.orderRepository=orderRepository;this.productRepository=productRepository;}
-    @GetMapping
-    public String reports(@RequestParam(defaultValue="Pedidos por Fecha") String type,Model m){
-        m.addAttribute("type",type);m.addAttribute("months",List.of("Ene","Feb","Mar","Abr","May","Jun","Jul","Ago"));
-        m.addAttribute("ordersByMonth",List.of(60,78,90,84,104,119,96,85));m.addAttribute("salesByMonth",List.of(18400,22100,27800,25200,31500,36000,29200,25800));
-        m.addAttribute("products",productRepository.findAll());m.addAttribute("orders",orderRepository.findAllByOrderByOrderDateDescIdDesc());
-        BigDecimal total=orderRepository.findAll().stream().map(o->o.getTotal()).reduce(BigDecimal.ZERO,BigDecimal::add);m.addAttribute("salesTotal",total);return "reports";
-    }
-    @GetMapping("/orders.csv")
-    public void csv(HttpServletResponse r)throws IOException{r.setContentType("text/csv; charset=UTF-8");r.setHeader("Content-Disposition","attachment; filename=reporte_pedidos_sigpi.csv");r.getWriter().write("Pedido,Fecha,Cliente,Estado,Responsable,Total\n");for(var o:orderRepository.findAllByOrderByOrderDateDescIdDesc())r.getWriter().printf("%s,%s,\"%s\",%s,\"%s\",%s%n",o.getCode(),o.getOrderDate(),o.getClient().getName(),o.getStatus(),o.getResponsible(),o.getTotal());}
+ private final ReportsService reports;private final ClientRepository clients;private final ProductRepository products;private final CategoryRepository categories;
+ public ReportController(ReportsService r,ClientRepository c,ProductRepository p,CategoryRepository g){reports=r;clients=c;products=p;categories=g;}
+ @GetMapping public String page(@RequestParam(defaultValue="orders")String type,@RequestParam(required=false)@DateTimeFormat(iso=DateTimeFormat.ISO.DATE)LocalDate from,@RequestParam(required=false)@DateTimeFormat(iso=DateTimeFormat.ISO.DATE)LocalDate to,@RequestParam(required=false)Long clientId,@RequestParam(required=false)Long productId,@RequestParam(required=false)Long categoryId,@RequestParam(defaultValue="")String status,Model m){
+  type=reports.normalize(type);m.addAttribute("type",type);m.addAttribute("reportTypes",ReportsService.TYPES);m.addAttribute("from",from);m.addAttribute("to",to);m.addAttribute("clientId",clientId);m.addAttribute("productId",productId);m.addAttribute("categoryId",categoryId);m.addAttribute("status",status);
+  m.addAttribute("clients",clients.findAll());m.addAttribute("products",products.findAll());m.addAttribute("categories",categories.findAll());m.addAttribute("table",reports.table(type,from,to,clientId,productId,categoryId,status));
+  var os=reports.orders(from,to,clientId,productId,categoryId,status);List<String> months=new ArrayList<>();List<Long> counts=new ArrayList<>();List<BigDecimal> amounts=new ArrayList<>();
+  YearMonth end=YearMonth.from(to==null?LocalDate.now():to);for(int i=7;i>=0;i--){YearMonth month=end.minusMonths(i);months.add(month.format(java.time.format.DateTimeFormatter.ofPattern("MMM yy",new Locale("es"))));var list=os.stream().filter(o->YearMonth.from(o.getOrderDate()).equals(month)).toList();counts.add((long)list.size());amounts.add(list.stream().filter(o->!o.getStatus().equals("Cancelado")).map(o->o.getTotal()).reduce(BigDecimal.ZERO,BigDecimal::add));}
+  m.addAttribute("months",months);m.addAttribute("ordersByMonth",counts);m.addAttribute("salesByMonth",amounts);m.addAttribute("maxMonth",Math.max(1L,counts.stream().mapToLong(Long::longValue).max().orElse(1)));
+  double max=amounts.stream().mapToDouble(BigDecimal::doubleValue).max().orElse(1);max=Math.max(max,1);StringBuilder points=new StringBuilder();for(int i=0;i<amounts.size();i++)points.append(String.format(Locale.ROOT,"%.2f,%.2f ",i*800.0/7,150-amounts.get(i).doubleValue()/max*130));m.addAttribute("linePoints",points.toString());
+  return "reports";
+ }
+ @GetMapping("/export/{format}") public ResponseEntity<byte[]> export(@PathVariable String format,@RequestParam(defaultValue="orders")String type,@RequestParam(required=false)@DateTimeFormat(iso=DateTimeFormat.ISO.DATE)LocalDate from,@RequestParam(required=false)@DateTimeFormat(iso=DateTimeFormat.ISO.DATE)LocalDate to,@RequestParam(required=false)Long clientId,@RequestParam(required=false)Long productId,@RequestParam(required=false)Long categoryId,@RequestParam(defaultValue="")String status)throws java.io.IOException{return Downloads.table(reports.table(type,from,to,clientId,productId,categoryId,status),format,"reporte_sigpi");}
 }

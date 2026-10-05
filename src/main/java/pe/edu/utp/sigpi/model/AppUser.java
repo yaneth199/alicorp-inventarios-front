@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
+@EntityListeners(EntityValidation.class)
 @Table(name = "app_users")
 public class AppUser {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
