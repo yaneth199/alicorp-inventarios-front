@@ -1,0 +1,39 @@
+name: sigpi-alicorp
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: sigpi_alicorp
+      POSTGRES_USER: sigpi
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Ejecuta INICIAR.bat para crear .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sigpi -d sigpi_alicorp"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+  app:
+    build:
+      context: .
+      target: runtime
+    image: sigpi-alicorp:local
+    restart: unless-stopped
+    init: true
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/sigpi_alicorp
+      DB_USER: sigpi
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD}
+      SIGPI_ADMIN_PASSWORD: ${SIGPI_ADMIN_PASSWORD:?Falta SIGPI_ADMIN_PASSWORD}
+      SIGPI_DEMO: ${SIGPI_DEMO:-true}
+      PORT: "8080"
+    ports:
+      - "${SIGPI_BIND_IP:-127.0.0.1}:${SIGPI_PORT:-8080}:8080"
+    stop_grace_period: 30s
+volumes:
+  postgres_data:

@@ -2,7 +2,7 @@
 <actions>
     <action>
         <actionName>run</actionName>
-        <goals><goal>spring-boot:run</goal></goals>
+        <goals><goal>spring-boot:run</goal></goals><properties><spring-boot.run.profiles>local</spring-boot.run.profiles></properties>
     </action>
     <action>
         <actionName>build</actionName>
