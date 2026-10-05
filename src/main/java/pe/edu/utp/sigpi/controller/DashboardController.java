@@ -1,42 +1,17 @@
 package pe.edu.utp.sigpi.controller;
-
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import pe.edu.utp.sigpi.model.Product;
-import pe.edu.utp.sigpi.repository.ProductRepository;
-import pe.edu.utp.sigpi.repository.SalesOrderRepository;
-import pe.edu.utp.sigpi.service.DashboardService;
-
-import java.time.LocalDate;
-import java.util.List;
-
+import org.springframework.stereotype.Controller;import org.springframework.ui.Model;import org.springframework.web.bind.annotation.GetMapping;
+import pe.edu.utp.sigpi.model.*;import pe.edu.utp.sigpi.repository.*;import java.util.*;import java.time.*;import java.math.BigDecimal;
 @Controller
 public class DashboardController {
-    private final DashboardService dashboardService;
-    private final ProductRepository productRepository;
-    private final SalesOrderRepository orderRepository;
-
-    public DashboardController(DashboardService dashboardService, ProductRepository productRepository, SalesOrderRepository orderRepository) {
-        this.dashboardService = dashboardService;
-        this.productRepository = productRepository;
-        this.orderRepository = orderRepository;
-    }
-
-    @GetMapping("/dashboard")
-    public String dashboard(Model model) {
-        List<Product> products = productRepository.findAll();
-        model.addAttribute("totalProducts", dashboardService.totalProducts());
-        model.addAttribute("lowStock", dashboardService.lowStock());
-        model.addAttribute("pendingOrders", dashboardService.pendingOrders());
-        model.addAttribute("completedOrders", dashboardService.completedOrders());
-        model.addAttribute("inventoryValue", dashboardService.inventoryValue());
-        model.addAttribute("todayOrders", orderRepository.findAll().stream().filter(o -> LocalDate.now().equals(o.getOrderDate())).count());
-        model.addAttribute("alerts", products.stream().filter(p -> p.getStock() <= p.getMinStock()).limit(4).toList());
-        model.addAttribute("orders", orderRepository.findAllByOrderByOrderDateDescIdDesc().stream().limit(5).toList());
-        model.addAttribute("topProducts", products.stream().limit(6).toList());
-        model.addAttribute("months", List.of("Ene","Feb","Mar","Abr","May","Jun","Jul","Ago"));
-        model.addAttribute("monthlyOrders", List.of(60,78,90,84,104,119,96,85));
-        return "dashboard";
-    }
+ private final ProductRepository products;private final SalesOrderRepository orders;private final CompanySettingRepository settings;
+ public DashboardController(ProductRepository p,SalesOrderRepository o,CompanySettingRepository s){products=p;orders=o;settings=s;}
+ @GetMapping("/dashboard") public String dashboard(Model m){var ps=products.findAll();var os=orders.findAllByOrderByOrderDateDescIdDesc();LocalDate today=LocalDate.now();
+  m.addAttribute("totalProducts",ps.size());m.addAttribute("lowStock",ps.stream().filter(p->p.isActive()&&p.getStock()>0&&p.getStock()<=p.getMinStock()).count());m.addAttribute("pendingOrders",os.stream().filter(o->!Set.of("Entregado","Cancelado").contains(o.getStatus())).count());m.addAttribute("completedOrders",os.stream().filter(o->o.getStatus().equals("Entregado")).count());m.addAttribute("todayOrders",os.stream().filter(o->o.getOrderDate().equals(today)).count());m.addAttribute("inventoryValue",ps.stream().map(p->p.getPurchasePrice().multiply(BigDecimal.valueOf(p.getStock()))).reduce(BigDecimal.ZERO,BigDecimal::add));
+  boolean enabled=settings.findById(1L).map(CompanySetting::isLowStockAlerts).orElse(true);var alerts=ps.stream().filter(p->enabled&&p.isActive()&&p.getStock()<=p.getMinStock()).toList();m.addAttribute("alerts",alerts.stream().limit(5).toList());m.addAttribute("alertTotal",alerts.size());m.addAttribute("orders",os.stream().limit(5).toList());
+  List<String> months=new ArrayList<>();List<Long> values=new ArrayList<>();for(int i=7;i>=0;i--){var month=YearMonth.now().minusMonths(i);months.add(month.format(java.time.format.DateTimeFormatter.ofPattern("MMM yy",new Locale("es"))));values.add(os.stream().filter(o->YearMonth.from(o.getOrderDate()).equals(month)).count());}m.addAttribute("months",months);m.addAttribute("monthlyOrders",values);m.addAttribute("maxMonth",Math.max(1L,values.stream().mapToLong(Long::longValue).max().orElse(1)));
+  List<String> states=List.of("Entregado","Enviado","Preparado","En proceso","Pendiente","Cancelado");List<String> colors=List.of("#13a95b","#8247e5","#1ca8ad","#2c72db","#dd8200","#e53535");Map<String,Long> counts=new LinkedHashMap<>();Map<String,String> percentages=new LinkedHashMap<>();Map<String,String> colorMap=new LinkedHashMap<>();StringJoiner gradient=new StringJoiner(",","conic-gradient(",")");double cumulative=0;
+  for(int i=0;i<states.size();i++){String status=states.get(i);long count=os.stream().filter(o->o.getStatus().equals(status)).count();double pct=os.isEmpty()?0:count*100.0/os.size();counts.put(status,count);percentages.put(status,String.format(Locale.ROOT,"%.1f%%",pct));colorMap.put(status,colors.get(i));gradient.add(String.format(Locale.ROOT,"%s %.4f%% %.4f%%",colors.get(i),cumulative,cumulative+pct));cumulative+=pct;}
+  m.addAttribute("states",counts);m.addAttribute("percentages",percentages);m.addAttribute("colors",colorMap);m.addAttribute("donutStyle","background:"+(os.isEmpty()?"#e4e9ef":gradient.toString()));m.addAttribute("orderCount",os.size());
+  Map<Long,Long> units=new HashMap<>();for(var order:os)if(order.getStatus().equals("Entregado"))for(var item:order.getItems())units.merge(item.getProduct().getId(),(long)item.getQuantity(),Long::sum);m.addAttribute("units",units);m.addAttribute("maxUnits",Math.max(1L,units.values().stream().mapToLong(Long::longValue).max().orElse(1)));m.addAttribute("topProducts",ps.stream().filter(p->units.containsKey(p.getId())).sorted(Comparator.comparingLong((Product p)->units.get(p.getId())).reversed()).limit(6).toList());return "dashboard";
+ }
 }

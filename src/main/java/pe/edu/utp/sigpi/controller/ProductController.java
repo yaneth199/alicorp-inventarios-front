@@ -16,6 +16,8 @@ import java.util.List;
 @Controller
 @RequestMapping("/products")
 public class ProductController {
+    @org.springframework.beans.factory.annotation.Autowired private pe.edu.utp.sigpi.repository.MovementRepository movements;
+    @org.springframework.beans.factory.annotation.Autowired private pe.edu.utp.sigpi.repository.CompanySettingRepository settings;
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
 
@@ -42,7 +44,7 @@ public class ProductController {
 
     @GetMapping("/new")
     public String newForm(Model model) {
-        model.addAttribute("product", new Product());
+        Product p=new Product();p.setMinStock(settings.findById(1L).map(pe.edu.utp.sigpi.model.CompanySetting::getDefaultMinStock).orElse(10));model.addAttribute("product",p);
         model.addAttribute("categories", categoryRepository.findAll());
         return "product-form";
     }
@@ -54,34 +56,30 @@ public class ProductController {
         return "product-form";
     }
 
+    @org.springframework.transaction.annotation.Transactional
     @PostMapping("/save")
     public String save(@RequestParam(required=false) Long id, @RequestParam String code, @RequestParam String name,
                        @RequestParam(required=false, defaultValue="") String description, @RequestParam Long categoryId,
                        @RequestParam String unit, @RequestParam BigDecimal purchasePrice, @RequestParam BigDecimal salePrice,
                        @RequestParam int stock, @RequestParam int minStock,
                        @RequestParam(required=false, defaultValue="true") boolean active, RedirectAttributes ra) {
-        Product p = id == null ? new Product() : productRepository.findById(id).orElseThrow();
+        Product p = id == null ? new Product() : productRepository.lockById(id).orElseThrow();
+        if(id!=null && stock!=p.getStock())throw new IllegalArgumentException("Modifica existencias desde Entradas/Salidas de inventario; vuelve a cargar el producto");
         p.setCode(code); p.setName(name); p.setDescription(description); p.setCategory(categoryRepository.findById(categoryId).orElseThrow());
         p.setUnit(unit); p.setPurchasePrice(purchasePrice); p.setSalePrice(salePrice); p.setStock(stock); p.setMinStock(minStock); p.setActive(active);
         productRepository.save(p);
+        if(id==null && stock>0) movements.save(new pe.edu.utp.sigpi.model.InventoryMovement(java.time.LocalDate.now(),p,"ENTRADA",stock,stock,"APERTURA", "Alta de producto"));
         ra.addFlashAttribute("success", "Producto guardado correctamente");
         return "redirect:/products";
     }
 
+    @org.springframework.transaction.annotation.Transactional
     @PostMapping("/{id}/delete")
     public String delete(@PathVariable Long id, RedirectAttributes ra) {
-        try { productRepository.deleteById(id); ra.addFlashAttribute("success", "Producto eliminado"); }
-        catch (Exception e) { ra.addFlashAttribute("error", "No se puede eliminar el producto porque tiene movimientos o pedidos asociados"); }
+        Product p=productRepository.lockById(id).orElseThrow();p.setActive(false);productRepository.save(p);
+        ra.addFlashAttribute("success","Producto desactivado. Se conserva su historial.");
         return "redirect:/products";
     }
 
-    @GetMapping("/export")
-    public void export(HttpServletResponse response) throws IOException {
-        response.setContentType("text/csv; charset=UTF-8");
-        response.setHeader("Content-Disposition", "attachment; filename=productos_sigpi.csv");
-        response.getWriter().write("Código,Producto,Categoría,Unidad,Precio compra,Precio venta,Stock,Stock mínimo,Estado\n");
-        for (Product p : productRepository.findAll()) {
-            response.getWriter().printf("%s,\"%s\",%s,%s,%s,%s,%d,%d,%s%n", p.getCode(), p.getName(), p.getCategory().getName(), p.getUnit(), p.getPurchasePrice(), p.getSalePrice(), p.getStock(), p.getMinStock(), p.getStockStatus());
-        }
-    }
+    @GetMapping("/export") public void export(HttpServletResponse r)throws IOException{var w=pe.edu.utp.sigpi.service.Csv.start(r,"productos_sigpi.csv");pe.edu.utp.sigpi.service.Csv.row(w,"Código","Producto","Categoría","Unidad","Compra","Venta","Stock","Mínimo","Estado");for(Product p:productRepository.findAll())pe.edu.utp.sigpi.service.Csv.row(w,p.getCode(),p.getName(),p.getCategory().getName(),p.getUnit(),p.getPurchasePrice(),p.getSalePrice(),p.getStock(),p.getMinStock(),p.getStockStatus());}
 }

@@ -11,6 +11,7 @@ import java.time.LocalDate;
 
 @Service
 public class InventoryService {
+    @org.springframework.beans.factory.annotation.Autowired private pe.edu.utp.sigpi.repository.ProviderRepository providers;
     private final ProductRepository productRepository;
     private final MovementRepository movementRepository;
 
@@ -20,14 +21,14 @@ public class InventoryService {
     }
 
     @Transactional
-    public InventoryMovement register(Long productId, String type, int quantity, String document, String responsible, String note) {
-        Product product = productRepository.findById(productId)
+    public InventoryMovement register(Long productId, String type, int quantity, String document, String responsible, String note, Long providerId) {
+        Product product = productRepository.lockById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado"));
         if (quantity <= 0) throw new IllegalArgumentException("La cantidad debe ser mayor a cero");
 
         int newStock;
         if ("ENTRADA".equalsIgnoreCase(type)) {
-            newStock = product.getStock() + quantity;
+            newStock = Math.addExact(product.getStock(), quantity);
         } else if ("SALIDA".equalsIgnoreCase(type)) {
             if (quantity > product.getStock()) throw new IllegalArgumentException("La salida supera el stock disponible");
             newStock = product.getStock() - quantity;
@@ -42,6 +43,7 @@ public class InventoryService {
                 document == null || document.isBlank() ? "S/D" : document,
                 responsible == null || responsible.isBlank() ? "Administrador" : responsible);
         movement.setNote(note);
+        if(providerId!=null){if(!"ENTRADA".equalsIgnoreCase(type))throw new IllegalArgumentException("El proveedor corresponde a una entrada");var provider=providers.findById(providerId).orElseThrow();if(!provider.isActive())throw new IllegalArgumentException("Proveedor inactivo");movement.setProvider(provider);}
         return movementRepository.save(movement);
     }
 }

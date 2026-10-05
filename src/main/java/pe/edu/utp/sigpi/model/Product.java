@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 
 @Entity
+@EntityListeners(EntityValidation.class)
 @Table(name = "products")
 public class Product {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -51,5 +52,5 @@ public class Product {
     public void setMinStock(int minStock) { this.minStock = minStock; }
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
-    @Transient public String getStockStatus() { return stock <= 0 ? "Agotado" : (stock <= minStock ? "Stock bajo" : "Disponible"); }
+    @Transient public String getStockStatus() { return !active ? "Inactivo" : stock <= 0 ? "Agotado" : (stock <= minStock ? "Stock bajo" : "Disponible"); }
 }

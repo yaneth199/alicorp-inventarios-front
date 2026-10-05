@@ -6,6 +6,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
+    @org.springframework.beans.factory.annotation.Autowired private PaginationInterceptor pagination;
     private final LoginInterceptor loginInterceptor;
 
     public WebConfig(LoginInterceptor loginInterceptor) {
@@ -15,5 +16,6 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(loginInterceptor).addPathPatterns("/**");
+        registry.addInterceptor(pagination).addPathPatterns("/**");
     }
 }

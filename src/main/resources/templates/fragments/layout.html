@@ -12,30 +12,30 @@
     <a th:href="@{/categories}" th:classappend="${active=='categories'}?'active'"><span class="ico">🏷</span> Categorías</a>
     <a th:href="@{/inventory}" th:classappend="${active=='inventory'}?'active'"><span class="ico">▣</span> Inventario</a>
     <a th:href="@{/orders}" th:classappend="${active=='orders'}?'active'"><span class="ico">🛒</span> Pedidos</a>
-    <a th:href="@{/clients}" th:classappend="${active=='clients'}?'active'"><span class="ico">👥</span> Clientes</a>
-    <a th:href="@{/providers}" th:classappend="${active=='providers'}?'active'"><span class="ico">🏭</span> Proveedores</a>
-    <a th:href="@{/movements}" th:classappend="${active=='movements'}?'active'"><span class="ico">↔</span> Movimientos</a>
-    <a th:href="@{/reports}" th:classappend="${active=='reports'}?'active'"><span class="ico">📊</span> Reportes</a>
-    <a th:href="@{/users}" th:classappend="${active=='users'}?'active'"><span class="ico">♟</span> Usuarios</a>
-    <a th:href="@{/settings}" th:classappend="${active=='settings'}?'active'"><span class="ico">⚙</span> Configuración</a>
+    <a th:if="${session.user.role=='Administrador' or session.user.role=='Ventas' or session.user.role=='Supervisor'}" th:href="@{/clients}" th:classappend="${active=='clients'}?'active'"><span class="ico">👥</span> Clientes</a>
+    <a th:if="${session.user.role=='Administrador' or session.user.role=='Almacén' or session.user.role=='Supervisor'}" th:href="@{/providers}" th:classappend="${active=='providers'}?'active'"><span class="ico">🏭</span> Proveedores</a>
+    <a th:if="${session.user.role=='Administrador' or session.user.role=='Almacén' or session.user.role=='Supervisor'}" th:href="@{/movements}" th:classappend="${active=='movements'}?'active'"><span class="ico">↔</span> Movimientos</a>
+    <a th:if="${session.user.role=='Administrador' or session.user.role=='Supervisor'}" th:href="@{/reports}" th:classappend="${active=='reports'}?'active'"><span class="ico">📊</span> Reportes</a>
+    <a th:if="${session.user.role=='Administrador'}" th:href="@{/users}" th:classappend="${active=='users'}?'active'"><span class="ico">♟</span> Usuarios</a>
+    <a th:if="${session.user.role=='Administrador'}" th:href="@{/settings}" th:classappend="${active=='settings'}?'active'"><span class="ico">⚙</span> Configuración</a>
   </nav>
   <div class="sidebar-bottom">
     <a th:href="@{/profile}"><span>♟</span> Mi Perfil</a>
-    <a class="logout" th:href="@{/logout}"><span>⊗</span> Cerrar sesión</a>
+    <form th:action="@{/logout}" method="post"><input type="hidden" name="_csrf" th:value="${session.csrf}"><button class="logout nav-logout">⊗ Cerrar sesión</button></form>
   </div>
 </aside>
 
 <header class="topbar" th:fragment="topbar(title)">
   <div style="display:flex;align-items:center;gap:10px">
     <button class="icon-btn mobile-menu" data-menu>☰</button>
-    <div class="page-title"><h1 th:text="${title}">Dashboard</h1><small>Alicorp S.A.C. — Arequipa, 27 de agosto de 2026</small></div>
+    <div class="page-title"><h1 th:text="${title}">Dashboard</h1><small th:text="${companyLabel}">Alicorp S.A.C. — Arequipa</small></div>
   </div>
   <div class="userbar">
-    <button class="icon-btn">🔔<span class="notif-dot"></span></button>
-    <div class="user-pill">
+    <a class="icon-btn" th:href="@{/inventory(status='Alerta')}" title="Consultar alertas de stock">🔔<span class="notif-dot" th:if="${stockAlertCount>0}"></span></a>
+    <a class="user-pill" th:href="@{/profile}" title="Mi perfil">
       <div class="avatar" th:text="${session.user != null ? session.user.initials : 'U'}">JQ</div>
       <div class="user-text"><strong th:text="${session.user != null ? session.user.fullName : 'Usuario'}">Juan Quispe</strong><small th:text="${session.user != null ? session.user.role : 'Administrador'}">Administrador</small></div><span class="muted">▼</span>
-    </div>
+    </a>
   </div>
 </header>
 

@@ -3,6 +3,7 @@ package pe.edu.utp.sigpi.model;
 import jakarta.persistence.*;
 
 @Entity
+@EntityListeners(EntityValidation.class)
 @Table(name = "providers")
 public class Provider {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
